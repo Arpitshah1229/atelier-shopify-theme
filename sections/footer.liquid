@@ -1,57 +1,92 @@
-<footer>
-  <div class="footer__copyright">
-    &copy;
-    {{ 'now' | date: '%Y' }}
-    {{ shop.name | link_to: routes.root_url }}, {{ powered_by_link }}
-  </div>
+{{ 'section-footer.css' | asset_url | stylesheet_tag }}
 
-  <div class="footer__links">
-    {% for link in section.settings.menu.links %}
-      {{ link.title | link_to: link.url }}
-    {% endfor %}
-  </div>
+<footer class="site-footer" data-section-id="{{ section.id }}" data-section-type="footer">
+  <div class="site-footer__inner page-width">
 
-  <div class="footer__payment">
-    {% if section.settings.show_payment_icons %}
-      {% for type in shop.enabled_payment_types %}
-        {{ type | payment_type_svg_tag }}
-      {% endfor %}
-    {% endif %}
+    <div class="site-footer__brand">
+      {%- if section.settings.logo != blank -%}
+        {{ section.settings.logo | image_url: width: 120 | image_tag:
+          widths: '60,90,120',
+          alt: section.settings.logo.alt | default: shop.name,
+          class: 'site-footer__logo-image'
+        }}
+      {%- else -%}
+        <span class="site-footer__monogram">{{ section.settings.monogram_text | default: 'n | p' }}</span>
+      {%- endif -%}
+    </div>
+
+    <div class="site-footer__columns">
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'link_column' -%}
+          <div class="site-footer__column" {{ block.shopify_attributes }}>
+            <h3 class="site-footer__column-title">{{ block.settings.heading }}</h3>
+            <ul class="site-footer__column-list">
+              {%- for link in block.settings.menu.links -%}
+                <li><a href="{{ link.url }}">{{ link.title }}</a></li>
+              {%- endfor -%}
+            </ul>
+          </div>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+
+    <div class="site-footer__bottom">
+      <p class="site-footer__copyright">
+        &copy; {{ 'now' | date: '%Y' }} {{ shop.name }}. {{ section.settings.bottom_text | default: 'All rights reserved.' }}
+      </p>
+    </div>
   </div>
 </footer>
 
-{% stylesheet %}
-  footer {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 2rem;
-  }
-  footer a {
-    text-decoration: none;
-    color: var(--color-foreground);
-  }
-  footer .footer__links,
-  footer .footer__payment {
-    display: flex;
-    gap: 1rem;
-  }
-{% endstylesheet %}
-
 {% schema %}
 {
-  "name": "t:general.footer",
+  "name": "Footer",
   "settings": [
     {
-      "type": "link_list",
-      "id": "menu",
-      "label": "t:labels.menu"
+      "type": "image_picker",
+      "id": "logo",
+      "label": "Logo image (optional, overrides monogram)"
     },
     {
-      "type": "checkbox",
-      "id": "show_payment_icons",
-      "label": "t:labels.show_payment_icons",
-      "default": true
+      "type": "text",
+      "id": "monogram_text",
+      "label": "Monogram text",
+      "default": "n | p"
+    },
+    {
+      "type": "text",
+      "id": "bottom_text",
+      "label": "Bottom bar text",
+      "default": "All rights reserved."
     }
-  ]
+  ],
+  "blocks": [
+    {
+      "type": "link_column",
+      "name": "Link column",
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Column heading",
+          "default": "Shop"
+        },
+        {
+          "type": "link_list",
+          "id": "menu",
+          "label": "Menu"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 4,
+  "default": {
+    "blocks": [
+      { "type": "link_column", "settings": { "heading": "Shop" } },
+      { "type": "link_column", "settings": { "heading": "Help" } },
+      { "type": "link_column", "settings": { "heading": "About" } },
+      { "type": "link_column", "settings": { "heading": "Connect" } }
+    ]
+  }
 }
 {% endschema %}
